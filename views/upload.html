@@ -1,103 +1,197 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Upload Video</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { darkMode: 'class' };
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* Reset and Base Styling */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0d0d0d;
+      color: #e4e4e4;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+
+    a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin: 1.5rem 0;
+      font-weight: bold;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #1e1e1e;
+      border: 1px solid #444;
+      color: #f9f9f9;
+      font-size: 1rem;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+
+    .error {
+      background-color: #dc2626;
+      padding: 0.75rem;
+      color: white;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .preview-box {
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      margin-top: 1rem;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+    }
+
+    .preview-box iframe,
+    .preview-box video {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    button {
+      background-color: #16a34a;
+      color: white;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #22c55e;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen p-6">
-  <div class="max-w-xl mx-auto">
-    <a href="/" class="text-blue-400 hover:underline">← Back</a>
-    <h1 class="text-3xl font-bold mb-6 mt-4">Upload Video</h1>
+<body>
+  <div class="container">
+    <a href="/">← Back</a>
+    <h1>Upload Video</h1>
 
     <!-- ERROR MESSAGE -->
-    <div id="error" class="hidden bg-red-600 p-2 rounded mb-4 text-white"></div>
+    <div id="error" class="error"></div>
 
     <!-- FORM -->
-    <form method="POST" action="/upload" class="space-y-4" onsubmit="return validateEmbed();">
-      <input type="text" name="title" required placeholder="Video Title"
-             class="w-full p-2 rounded bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    <form method="POST" action="/upload" onsubmit="return validateEmbed();">
+      <div class="form-group">
+        <input type="text" name="title" required placeholder="Video Title" />
+      </div>
 
-      <textarea id="embed_input" name="embed_code" required rows="5" placeholder="Paste iframe embed, .mp4 link, or YouTube/Vimeo URL"
-                class="w-full p-2 rounded bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                oninput="previewEmbed()"></textarea>
+      <div class="form-group">
+        <textarea id="embed_input" name="embed_code" required rows="5"
+                  placeholder="Paste iframe embed, .mp4 link, or YouTube/Vimeo URL"
+                  oninput="previewEmbed()"></textarea>
+      </div>
 
       <!-- PREVIEW AREA -->
-      <div id="preview" class="aspect-video border border-gray-700 p-2 rounded bg-gray-800"></div>
+      <div id="preview" class="preview-box"></div>
 
-      <button id="submitBtn" type="submit" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed">
-        Upload
-      </button>
+      <div class="form-group">
+        <button id="submitBtn" type="submit" disabled>Upload</button>
+      </div>
     </form>
   </div>
 
   <script>
-  function previewEmbed() {
-    const inputValue = document.getElementById("embed_input").value.trim();
-    const preview = document.getElementById("preview");
-    const errorDiv = document.getElementById("error");
-    const submitBtn = document.getElementById("submitBtn");
+    function previewEmbed() {
+      const inputValue = document.getElementById("embed_input").value.trim();
+      const preview = document.getElementById("preview");
+      const errorDiv = document.getElementById("error");
+      const submitBtn = document.getElementById("submitBtn");
 
-    preview.innerHTML = '';
-    errorDiv.classList.add("hidden");
-    submitBtn.disabled = true;
+      preview.innerHTML = '';
+      errorDiv.style.display = "none";
+      submitBtn.disabled = true;
 
-    if (!inputValue) return;
+      if (!inputValue) return;
 
-    let embedHTML = '';
+      let embedHTML = '';
 
-    // Case 1: iframe already
-    if (inputValue.includes('<iframe') && inputValue.includes('</iframe>')) {
-      embedHTML = inputValue;
-    }
-    // Case 2: direct .mp4 URL
-    else if (/^https?:\/\/.*\.mp4(\?.*)?$/i.test(inputValue)) {
-      embedHTML = `
-        <video controls class="w-full h-full rounded">
-          <source src="${inputValue}" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-      `;
-    }
-    // Case 3: YouTube or Vimeo URL
-    else if (/^https?:\/\/(www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/.test(inputValue)) {
-      const videoId = inputValue.split("v=")[1].split("&")[0];
-      embedHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-    }
-    else if (/^https?:\/\/(www\.)?youtu\.be\/([a-zA-Z0-9_-]+)/.test(inputValue)) {
-      const videoId = inputValue.split("/").pop();
-      embedHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-    }
-    else if (/^https?:\/\/(www\.)?vimeo\.com\/\d+/.test(inputValue)) {
-      const videoId = inputValue.split("/").pop();
-      embedHTML = `<iframe src="https://player.vimeo.com/video/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-    }
-    else {
-      errorDiv.textContent = "Unsupported embed code or video link.";
-      errorDiv.classList.remove("hidden");
-      return;
-    }
+      // Case 1: iframe already
+      if (inputValue.includes('<iframe') && inputValue.includes('</iframe>')) {
+        embedHTML = inputValue;
+      }
+      // Case 2: direct .mp4 URL
+      else if (/^https?:\/\/.*\.mp4(\?.*)?$/i.test(inputValue)) {
+        embedHTML = `
+          <video controls>
+            <source src="${inputValue}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        `;
+      }
+      // YouTube full URL
+      else if (/^https?:\/\/(www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/.test(inputValue)) {
+        const videoId = inputValue.split("v=")[1].split("&")[0];
+        embedHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
+      }
+      // YouTube short URL
+      else if (/^https?:\/\/(www\.)?youtu\.be\/([a-zA-Z0-9_-]+)/.test(inputValue)) {
+        const videoId = inputValue.split("/").pop();
+        embedHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
+      }
+      // Vimeo
+      else if (/^https?:\/\/(www\.)?vimeo\.com\/\d+/.test(inputValue)) {
+        const videoId = inputValue.split("/").pop();
+        embedHTML = `<iframe src="https://player.vimeo.com/video/${videoId}" allowfullscreen></iframe>`;
+      }
+      else {
+        errorDiv.textContent = "Unsupported embed code or video link.";
+        errorDiv.style.display = "block";
+        return;
+      }
 
-    preview.innerHTML = `
-      <div class="aspect-video w-full overflow-hidden rounded bg-black">${embedHTML}</div>
-    `;
-    const mediaEl = preview.querySelector('iframe, video');
-    if (mediaEl) {
-      mediaEl.classList.add('w-full', 'h-full');
-      mediaEl.removeAttribute('width');
-      mediaEl.removeAttribute('height');
+      preview.innerHTML = embedHTML;
+      submitBtn.disabled = false;
     }
 
-    submitBtn.disabled = false;
-  }
-
-  function validateEmbed() {
-    const inputValue = document.getElementById("embed_input").value.trim();
-    return !!inputValue;
-  }
+    function validateEmbed() {
+      const inputValue = document.getElementById("embed_input").value.trim();
+      return !!inputValue;
+    }
   </script>
 </body>
 </html>
