@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Video Gallery</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+  <div class="w-[90%] mx-auto">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold">VideoHub</h1>
+      <a href="/upload" class="bg-blue-600 px-4 py-2 rounded text-white hover:bg-blue-500">Upload</a>
+    </header>
+
+    <!-- Video Grid -->
+    <div id="video-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </div>
+
+  <!-- Script to Load Videos -->
+  <script>
+    fetch('/api/videos')
+      .then(res => res.json())
+      .then(videos => {
+        const container = document.getElementById('video-list');
+        videos.forEach((video, index) => {
+          const div = document.createElement('div');
+          div.className = "bg-gray-800 rounded-lg overflow-hidden shadow-lg p-4 flex flex-col";
+
+          let embedCode = video.embed_code.trim();
+
+          // Detect if plain MP4 URL and convert to <video> embed
+          if (/^https?:\/\/.*\.mp4(\?.*)?$/i.test(embedCode)) {
+            embedCode = `
+              <video controls class="w-full h-full rounded">
+                <source src="${embedCode}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            `;
+          }
+
+          div.innerHTML = `
+            <h2 class="text-lg font-semibold mb-3">${video.title}</h2>
+            <div class="aspect-video w-full overflow-hidden rounded bg-black" id="video-${index}">
+              ${embedCode}
+            </div>
+          `;
+
+          // Make iframe or video responsive
+          const mediaEl = div.querySelector('iframe, video');
+          if (mediaEl) {
+            mediaEl.classList.add('w-full', 'h-full');
+            mediaEl.removeAttribute('width');
+            mediaEl.removeAttribute('height');
+          }
+
+          container.appendChild(div);
+        });
+      })
+      .catch(err => {
+        document.getElementById('video-list').innerHTML = `
+          <div class="text-red-400">Error loading videos. Please try again later.</div>
+        `;
+        console.error("Failed to fetch videos:", err);
+      });
+  </script>
+</body>
+</html>

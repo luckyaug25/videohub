@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Player</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+  <div class="max-w-3xl mx-auto">
+    <a href="/" class="text-blue-400 hover:underline">← Back</a>
+    <div id="video-player" class="mt-6"></div>
+  </div>
+
+  <script>
+    const id = window.location.pathname.split("/").pop();
+    fetch(`/api/video/${id}`)
+      .then(res => res.json())
+      .then(video => {
+        document.title = video.title;
+        document.getElementById('video-player').innerHTML = `
+          <h1 class="text-2xl font-bold mb-4">${video.title}</h1>
+          <div class="aspect-video">${video.embed_code}</div>`;
+      });
+  </script>
+</body>
+</html>

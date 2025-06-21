@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Video</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+  <div class="max-w-xl mx-auto">
+    <a href="/" class="text-blue-400 hover:underline">← Back</a>
+    <h1 class="text-3xl font-bold mb-6 mt-4">Upload Video</h1>
+
+    <!-- ERROR MESSAGE -->
+    <div id="error" class="hidden bg-red-600 p-2 rounded mb-4 text-white"></div>
+
+    <!-- FORM -->
+    <form method="POST" action="/upload" class="space-y-4" onsubmit="return validateEmbed();">
+      <input type="text" name="title" required placeholder="Video Title"
+             class="w-full p-2 rounded bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+      <textarea id="embed_input" name="embed_code" required rows="5" placeholder="Paste iframe embed, .mp4 link, or YouTube/Vimeo URL"
+                class="w-full p-2 rounded bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                oninput="previewEmbed()"></textarea>
+
+      <!-- PREVIEW AREA -->
+      <div id="preview" class="aspect-video border border-gray-700 p-2 rounded bg-gray-800"></div>
+
+      <button id="submitBtn" type="submit" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed">
+        Upload
+      </button>
+    </form>
+  </div>
+
+  <script>
+  function previewEmbed() {
+    const inputValue = document.getElementById("embed_input").value.trim();
+    const preview = document.getElementById("preview");
+    const errorDiv = document.getElementById("error");
+    const submitBtn = document.getElementById("submitBtn");
+
+    preview.innerHTML = '';
+    errorDiv.classList.add("hidden");
+    submitBtn.disabled = true;
+
+    if (!inputValue) return;
+
+    let embedHTML = '';
+
+    // Case 1: iframe already
+    if (inputValue.includes('<iframe') && inputValue.includes('</iframe>')) {
+      embedHTML = inputValue;
+    }
+    // Case 2: direct .mp4 URL
+    else if (/^https?:\/\/.*\.mp4(\?.*)?$/i.test(inputValue)) {
+      embedHTML = `
+        <video controls class="w-full h-full rounded">
+          <source src="${inputValue}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      `;
+    }
+    // Case 3: YouTube or Vimeo URL
+    else if (/^https?:\/\/(www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/.test(inputValue)) {
+      const videoId = inputValue.split("v=")[1].split("&")[0];
+      embedHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    }
+    else if (/^https?:\/\/(www\.)?youtu\.be\/([a-zA-Z0-9_-]+)/.test(inputValue)) {
+      const videoId = inputValue.split("/").pop();
+      embedHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    }
+    else if (/^https?:\/\/(www\.)?vimeo\.com\/\d+/.test(inputValue)) {
+      const videoId = inputValue.split("/").pop();
+      embedHTML = `<iframe src="https://player.vimeo.com/video/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    }
+    else {
+      errorDiv.textContent = "Unsupported embed code or video link.";
+      errorDiv.classList.remove("hidden");
+      return;
+    }
+
+    preview.innerHTML = `
+      <div class="aspect-video w-full overflow-hidden rounded bg-black">${embedHTML}</div>
+    `;
+    const mediaEl = preview.querySelector('iframe, video');
+    if (mediaEl) {
+      mediaEl.classList.add('w-full', 'h-full');
+      mediaEl.removeAttribute('width');
+      mediaEl.removeAttribute('height');
+    }
+
+    submitBtn.disabled = false;
+  }
+
+  function validateEmbed() {
+    const inputValue = document.getElementById("embed_input").value.trim();
+    return !!inputValue;
+  }
+  </script>
+</body>
+</html>
