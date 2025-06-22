@@ -28,15 +28,30 @@ app.post('/upload', async (req, res) => {
   res.redirect('/');
 });
 
-app.get('/player/:id', async (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'player.html'));
+
+// Serve the leaked page
+app.get('/leaked', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'leaked.html'));
 });
 
-app.get('/api/video/:id', async (req, res) => {
-  const { id } = req.params;
-  const video = await pool.query('SELECT * FROM videos WHERE id = $1', [id]);
-  res.json(video.rows[0]);
+// Serve the leaked upload form
+app.get('/leaked-upload', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'leaked-upload.html'));
 });
+
+// Handle leaked video upload
+app.post('/leaked-upload', async (req, res) => {
+  const { title, embed_code } = req.body;
+  await pool.query('INSERT INTO leaked_videos (title, embed_code) VALUES ($1, $2)', [title, embed_code]);
+  res.redirect('/leaked');
+});
+
+// API to return all leaked videos
+app.get('/api/leaked_videos', async (req, res) => {
+  const { rows } = await pool.query('SELECT * FROM leaked_videos ORDER BY id DESC');
+  res.json(rows);
+});
+
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server running on port http://localhost:${process.env.PORT}`);
