@@ -52,6 +52,30 @@ app.get('/api/leaked_videos', async (req, res) => {
   res.json(rows);
 });
 
+// serve the celeb videos
+app.get('/celebs', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'celebs.html'));
+});
+
+// Serve the celebs upload form
+app.get('/celebs-upload', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'celebs-upload.html'));
+});
+
+// Handle celebs video upload
+app.post('/celebs-upload', async (req, res) => {
+  const { title, embed_code } = req.body;
+  await pool.query('INSERT INTO celebs_videos (title, embed_code) VALUES ($1, $2)', [title, embed_code]);
+  res.redirect('/celebs');
+});
+
+// API to return all celebs videos
+app.get('/api/celebs_videos', async (req, res) => {
+  const { rows } = await pool.query('SELECT * FROM celebs_videos ORDER BY id DESC');
+  res.json(rows);
+});
+
+
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server running on port http://localhost:${process.env.PORT}`);

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>VideoHub – Leaked</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Anton&family=Boldonse&family=Chau+Philomene+One:ital@0;1&family=Iceland&family=Jaro:opsz@6..72&family=Lexend:wght@100..900&family=Lora:ital,wght@0,400..700;1,400..700&family=Marcellus&family=New+Rocker&family=Plaster&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Sansita:ital,wght@0,400;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Teko:wght@300..700&family=Yatra+One&display=swap');
     body {
@@ -26,7 +27,7 @@
     }
 
     header h1 {
-      font-size: 1.8rem;
+      font-size: 2rem;
     }
 
     header a {
@@ -115,12 +116,36 @@
     #pagination-controls button:hover:not(:disabled) {
       background-color: #3b82f6;
     }
+
+    .upload-celeb {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background-color: green;
+      color: white;
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      text-decoration: none;
+      transition: background 0.3s;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .upload-celeb:hover {
+      background-color: limegreen;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Leaked Videos</h1>
-    <a href="/leaked-upload">Upload</a>
+    <h1>VideoHub – Leaked</h1>
+    <a href="/">Home</a>
   </header>
 
   <div class="container">
@@ -132,6 +157,10 @@
       <button id="next-btn">Next</button>
     </div>
   </div>
+
+  <a href="/leaked-upload" class="upload-celeb" title="leaked Upload">
+    <i class="fa-solid fa-plus"></i>
+  </a>
 
   <script>
     const videosPerPage = 12;
